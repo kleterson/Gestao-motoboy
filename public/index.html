@@ -11,7 +11,10 @@
         header { background: #1e1e1e; padding: 15px 20px; border-bottom: 3px solid #ff7300; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
         .header-left { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
         header h1 { font-size: 20px; color: #ff7300; }
-        #relogio-brasilia { font-size: 13px; font-weight: bold; color: #aaa; background: #2a2a2a; padding: 5px 10px; border-radius: 6px; border: 1px solid #444; }
+        
+        /* Botão de Renovar no lugar do relógio */
+        .btn-renovar-header { background: #25d366; color: #fff; border: none; padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; box-shadow: 0 2px 8px rgba(37, 211, 102, 0.3); }
+        .btn-renovar-header:hover { background: #20ba5a; }
 
         .user-info { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
         #contador-expiracao { font-size: 12px; font-weight: bold; color: #ff9d00; background: #2a2a2a; padding: 5px 10px; border-radius: 6px; border: 1px solid #ff7300; }
@@ -23,7 +26,6 @@
         .card-login { background: rgba(30, 30, 30, 0.95); border-radius: 16px; padding: 30px; width: 100%; max-width: 420px; color: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #ff7300; position: relative; }
         .msg { background: #ff730022; border: 1px solid #ff7300; padding: 10px; border-radius: 8px; color: #ff9d00; text-align: center; margin-bottom: 15px; font-size: 14px; }
 
-        /* Nova Notificação Bonita */
         #toast-notificacao {
             position: fixed;
             top: 20px;
@@ -79,7 +81,6 @@
 </head>
 <body id="body-app">
 
-    <!-- Caixa de Notificação Bonita (Toast) -->
     <div id="toast-notificacao">
         <div class="toast-icon">🎉</div>
         <div class="toast-content">
@@ -88,7 +89,6 @@
         </div>
     </div>
 
-    <!-- Tela de Login / Cadastro -->
     <div id="auth-container" class="login-body" style="display: flex;">
         <div class="card-login">
             <div style="text-align: center; color: #ff7300; font-size: 24px; font-weight: bold; margin-bottom: 5px;">🚀 MOTOBOY CONTROL</div>
@@ -116,12 +116,14 @@
         </div>
     </div>
 
-    <!-- Painel Principal (Dashboard) -->
     <div id="dashboard-container" style="display: none;">
         <header>
             <div class="header-left">
                 <h1>🏍️ 99 Food</h1>
-                <div id="relogio-brasilia">Carregando...</div>
+                <!-- Botão de Renovar no lugar do relógio -->
+                <button class="btn-renovar-header" onclick="abrirPaginaRenovacao()">
+                    💬 Renovar WhatsApp
+                </button>
             </div>
             <div class="user-info">
                 <span>Olá, <strong id="user-name-display"></strong></span>
@@ -131,7 +133,6 @@
         </header>
 
         <div class="container">
-            <!-- Painel Administrativo -->
             <div id="painel-admin" style="display: none; background: #1e1e1e; padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 1px solid #ff7300;">
                 <h2>👑 Painel do Administrador - Gestão de Clientes</h2>
                 <table>
@@ -261,24 +262,10 @@
             }, 4000);
         }
 
-        function atualizarRelogio() {
-            const agora = new Date();
-            const opcoes = {
-                timeZone: 'America/Sao_Paulo',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric'
-            };
-            const formatoBrasil = new Intl.DateTimeFormat('pt-BR', opcoes).format(agora);
-            const relogioElemento = document.getElementById('relogio-brasilia');
-            if (relogioElemento) {
-                relogioElemento.innerHTML = `🕒 ${formatoBrasil}`;
-            }
-
+        // Função do contador atualizada para rodar em segundo plano sem mexer no layout do botão do WhatsApp
+        function atualizarContadorExpiracao() {
             if (dataExpiracaoGlobal) {
+                const agora = new Date();
                 const diff = new Date(dataExpiracaoGlobal) - agora;
                 const contadorEl = document.getElementById('contador-expiracao');
                 if (diff <= 0) {
@@ -294,8 +281,26 @@
                 }
             }
         }
-        setInterval(atualizarRelogio, 1000);
-        atualizarRelogio();
+        setInterval(atualizarContadorExpiracao, 1000);
+
+        function abrirPaginaRenovacao() {
+            document.querySelector('.container').innerHTML = `
+                <div style="text-align: center; padding: 40px 20px; background: #1e1e1e; border-radius: 12px; border: 1px solid #ff7300; max-width: 500px; margin: 40px auto;">
+                    <h2 style="color: #ff7300; font-size: 22px; margin-bottom: 15px;">🚀 Renove seu Acesso</h2>
+                    <p style="color: #ccc; font-size: 15px; margin-bottom: 25px; line-height: 1.5;">
+                        Para continuar utilizando o Gestão Motoboy e manter suas finanças organizadas, clique no botão abaixo para falar diretamente comigo no WhatsApp e garantir a sua renovação!
+                    </p>
+                    <a href="https://wa.me/5511920065761?text=Olá!%20Gostaria%20de%20renovar%20meu%20acesso%20ao%20Gestão%20Motoboy." target="_blank" style="display: inline-block; background: #25d366; color: #fff; text-decoration: none; font-weight: bold; padding: 12px 24px; border-radius: 8px; font-size: 16px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);">
+                        💬 Chamar no WhatsApp (11 92006-5761)
+                    </a>
+                    <div>
+                        <button onclick="window.location.reload()" style="background: none; border: none; color: #aaa; text-decoration: underline; cursor: pointer; font-size: 14px;">
+                            ← Voltar para o Painel
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
 
         function formatarMoeda(valor) {
             return 'R$ ' + Number(valor).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -311,6 +316,7 @@
                     document.getElementById('body-app').style.background = '#121212';
                     document.getElementById('user-name-display').innerText = data.nome;
                     dataExpiracaoGlobal = data.data_expiracao;
+                    atualizarContadorExpiracao();
                     carregarDados();
                     verificarPainelAdmin(data.is_admin);
                 } else {
@@ -339,8 +345,6 @@
                 
                 usuarios.forEach(u => {
                     const dataExp = new Date(u.data_expiracao).toLocaleDateString('pt-BR');
-                    
-                    // Lógica dinâmica para alternar entre Bloquear e Desbloquear com base no status do banco
                     const isBloqueado = u.status === 'bloqueado';
                     const botaoStatusHtml = isBloqueado 
                         ? `<button onclick="desbloquearCliente(${u.id})" style="background: #ff4444; color: #fff; border: none; padding: 6px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; margin-right: 5px;">🔓 Desbloquear</button>`

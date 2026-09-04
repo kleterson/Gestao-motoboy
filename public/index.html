@@ -290,7 +290,7 @@
                     const horas = Math.floor((diff / (1000 * 60 * 60)) % 24);
                     const minutos = Math.floor((diff / 1000 / 60) % 60);
                     const segundos = Math.floor((diff / 1000) % 60);
-                    contadorEl.innerHTML = `⏳ Teste: ${dias}d ${horas}h ${minutos}m ${segundos}s`;
+                    contadorEl.innerHTML = `⏳ Tempo: ${dias}d ${horas}h ${minutos}m ${segundos}s`;
                 }
             }
         }
@@ -339,6 +339,13 @@
                 
                 usuarios.forEach(u => {
                     const dataExp = new Date(u.data_expiracao).toLocaleDateString('pt-BR');
+                    
+                    // Lógica dinâmica para alternar entre Bloquear e Desbloquear com base no status do banco
+                    const isBloqueado = u.status === 'bloqueado';
+                    const botaoStatusHtml = isBloqueado 
+                        ? `<button onclick="desbloquearCliente(${u.id})" style="background: #ff4444; color: #fff; border: none; padding: 6px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; margin-right: 5px;">🔓 Desbloquear</button>`
+                        : `<button onclick="bloquearCliente(${u.id})" style="background: #ff9d00; color: #121212; border: none; padding: 6px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; margin-right: 5px;">🔒 Bloquear</button>`;
+
                     tbody.innerHTML += `
                         <tr>
                             <td>${u.nome}</td>
@@ -348,9 +355,7 @@
                                 <button onclick="renovarCliente(${u.id})" style="background: #00e676; color: #121212; border: none; padding: 6px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; margin-right: 5px;">
                                     ➕ Renovar
                                 </button>
-                                <button onclick="bloquearCliente(${u.id})" style="background: #ff9d00; color: #121212; border: none; padding: 6px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; margin-right: 5px;">
-                                    🔒 Bloquear
-                                </button>
+                                ${botaoStatusHtml}
                                 <button onclick="excluirCliente(${u.id})" style="background: #ff4444; color: #fff; border: none; padding: 6px 10px; border-radius: 4px; font-weight: bold; cursor: pointer;">
                                     🗑️ Excluir
                                 </button>
@@ -373,6 +378,15 @@
                 const res = await fetch(`/api/admin/bloquear/${id}`, { method: 'POST' });
                 const data = await res.json();
                 mostrarNotificacao('Aviso', data.mensagem);
+                carregarUsuariosAdmin();
+            }
+        }
+
+        async function desbloquearCliente(id) {
+            if (confirm('Deseja realmente desbloquear este usuário?')) {
+                const res = await fetch(`/api/admin/desbloquear/${id}`, { method: 'POST' });
+                const data = await res.json();
+                mostrarNotificacao('Sucesso', data.mensagem);
                 carregarUsuariosAdmin();
             }
         }

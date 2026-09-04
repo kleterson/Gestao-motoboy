@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão Motoboy - 99 Food</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: #121212; color: #eee; min-height: 100vh; padding-bottom: 40px; }
+        
+        header { background: #1e1e1e; padding: 15px 20px; border-bottom: 3px solid #ff7300; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .header-left { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+        header h1 { font-size: 20px; color: #ff7300; }
+        #relogio-brasilia { font-size: 13px; font-weight: bold; color: #aaa; background: #2a2a2a; padding: 5px 10px; border-radius: 6px; border: 1px solid #444; }
+
+        .user-info { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        #contador-expiracao { font-size: 12px; font-weight: bold; color: #ff9d00; background: #2a2a2a; padding: 5px 10px; border-radius: 6px; border: 1px solid #ff7300; }
+        .logout-btn { color: #ff4444; text-decoration: none; font-weight: bold; background: #ff444422; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
+
+        .container { max-width: 1000px; margin: 20px auto; padding: 0 15px; }
+        
+        .login-body { background: linear-gradient(rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.85)), url('https://images.unsplash.com/photo-1558981806-ec527fa84c39?q=80&w=1200&auto=format&fit=crop') center/cover no-repeat fixed; display: flex; align-items: center; justify-content: center; height: 100vh; }
+        .card-login { background: rgba(30, 30, 30, 0.95); border-radius: 16px; padding: 30px; width: 100%; max-width: 420px; color: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #ff7300; position: relative; }
+        .msg { background: #ff730022; border: 1px solid #ff7300; padding: 10px; border-radius: 8px; color: #ff9d00; text-align: center; margin-bottom: 15px; font-size: 14px; }
+
+        /* Nova Notificação Bonita */
+        #toast-notificacao {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #1e1e1e;
+            border-left: 5px solid #00e676;
+            color: #fff;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.6);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transform: translateX(120%);
+            transition: transform 0.4s ease-in-out;
+            max-width: 350px;
+            border-top: 1px solid #333;
+            border-right: 1px solid #333;
+            border-bottom: 1px solid #333;
+        }
+        #toast-notificacao.show { transform: translateX(0); }
+        .toast-icon { font-size: 20px; }
+        .toast-content .toast-title { font-weight: bold; font-size: 14px; color: #00e676; margin-bottom: 2px; }
+        .toast-content .toast-desc { font-size: 12px; color: #ccc; }
+
+        .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .card-stat { background: #1e1e1e; border-radius: 12px; padding: 20px; border-left: 5px solid #ff7300; }
+        .card-stat h3 { font-size: 14px; color: #aaa; margin-bottom: 8px; }
+        .card-stat .value { font-size: 24px; font-weight: bold; }
+        .card-stat .sub { font-size: 12px; color: #888; margin-top: 5px; }
+
+        .metas-box, .form-box, .table-box { background: #1e1e1e; padding: 20px; border-radius: 12px; margin-bottom: 25px; }
+        .metas-box h2, .form-box h2, .table-box h2 { font-size: 18px; color: #ff7300; margin-bottom: 15px; }
+        .progress-group { margin-bottom: 15px; }
+        .progress-label { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 5px; }
+        .progress-bar-bg { background: #333; height: 18px; border-radius: 9px; overflow: hidden; }
+        .progress-fill { background: linear-gradient(90deg, #ff7300, #00e676); height: 100%; transition: width 0.5s; }
+
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+        input, select { padding: 10px; background: #2a2a2a; border: 1px solid #444; border-radius: 6px; color: #fff; width: 100%; margin-bottom: 5px; }
+        .btn-add { background: #ff7300; color: #fff; font-weight: bold; border: none; padding: 10px; border-radius: 6px; cursor: pointer; width: 100%; }
+        .btn-add:hover { background: #e06500; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; text-align: left; }
+        th, td { padding: 12px; border-bottom: 1px solid #333; font-size: 14px; }
+        th { color: #ff7300; }
+        .txt-ganho { color: #00e676; font-weight: bold; }
+        .txt-gasto { color: #ff5252; font-weight: bold; }
+        .del-btn { color: #ff4444; cursor: pointer; border: none; background: none; font-size: 16px; }
+        .toggle-btn { text-align: center; margin-top: 15px; color: #aaa; font-size: 14px; cursor: pointer; text-decoration: underline; }
+    </style>
+</head>
+<body id="body-app">
+
+    <!-- Caixa de Notificação Bonita (Toast) -->
+    <div id="toast-notificacao">
+        <div class="toast-icon">🎉</div>
+        <div class="toast-content">
+            <div class="toast-title" id="toast-title">Sucesso!</div>
+            <div class="toast-desc" id="toast-desc">Mensagem aqui.</div>
+        </div>
+    </div>
+
+    <!-- Tela de Login / Cadastro -->
+    <div id="auth-container" class="login-body" style="display: flex;">
+        <div class="card-login">
+            <div style="text-align: center; color: #ff7300; font-size: 24px; font-weight: bold; margin-bottom: 5px;">🚀 MOTOBOY CONTROL</div>
+            <div style="text-align: center; color: #ccc; font-size: 14px; margin-bottom: 25px;">Gestão Financeira 99 Food</div>
+            
+            <div id="msg-erro" class="msg" style="display: none;"></div>
+
+            <form id="form-auth" onsubmit="realizarAuth(event)" autocomplete="off">
+                <input type="hidden" id="auth-acao" value="login">
+                <div id="div-nome" style="display: none;" class="form-group">
+                    <label>Seu Nome</label>
+                    <input type="text" id="nome" placeholder="Seu nome" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label>E-mail</label>
+                    <input type="email" id="email" required placeholder="email@exemplo.com" autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label>Senha</label>
+                    <input type="password" id="senha" required placeholder="••••••••" autocomplete="new-password">
+                </div>
+                <button type="submit" class="btn-add" id="btn-submit-auth" style="margin-top: 10px;">Entrar</button>
+                <div class="toggle-btn" onclick="alternarTelaAuth()">Não tem conta? Cadastre-se</div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Painel Principal (Dashboard) -->
+    <div id="dashboard-container" style="display: none;">
+        <header>
+            <div class="header-left">
+                <h1>🏍️ 99 Food</h1>
+                <div id="relogio-brasilia">Carregando...</div>
+            </div>
+            <div class="user-info">
+                <span>Olá, <strong id="user-name-display"></strong></span>
+                <div id="contador-expiracao">⏳ Carregando...</div>
+                <a href="/api/logout" class="logout-btn">Sair</a>
+            </div>
+        </header>
+
+        <div class="container">
+            <!-- Painel Administrativo -->
+            <div id="painel-admin" style="display: none; background: #1e1e1e; padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 1px solid #ff7300;">
+                <h2>👑 Painel do Administrador - Gestão de Clientes</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>E-mail</th>
+                            <th>Expira em</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-admin-usuarios">
+                        <tr><td colspan="4" style="text-align: center; color: #888;">Carregando usuários...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="cards-grid">
+                <div class="card-stat">
+                    <h3>Lucro Líquido Hoje</h3>
+                    <div class="value" id="val-hoje">R$ 0,00</div>
+                </div>
+                <div class="card-stat">
+                    <h3>Resumo da Semana</h3>
+                    <div class="value" id="val-semana">R$ 0,00</div>
+                    <div class="sub" id="sub-semana">Ganhos: R$ 0,00 | Gastos: R$ 0,00</div>
+                </div>
+                <div class="card-stat">
+                    <h3>Resumo do Mês</h3>
+                    <div class="value" id="val-mes">R$ 0,00</div>
+                    <div class="sub" id="sub-mes">Ganhos: R$ 0,00 | Gastos: R$ 0,00</div>
+                </div>
+            </div>
+
+            <div class="metas-box">
+                <h2>🎯 Progresso de Metas (Bruto)</h2>
+                <div class="progress-group">
+                    <div class="progress-label">
+                        <span>Meta Semanal (R$ 1.000,00)</span>
+                        <span id="txt-meta-semana">R$ 0,00 (0%)</span>
+                    </div>
+                    <div class="progress-bar-bg"><div class="progress-fill" id="bar-semana" style="width: 0%;"></div></div>
+                </div>
+                <div class="progress-group">
+                    <div class="progress-label">
+                        <span>Meta Mensal (R$ 4.000,00)</span>
+                        <span id="txt-meta-mes">R$ 0,00 (0%)</span>
+                    </div>
+                    <div class="progress-bar-bg"><div class="progress-fill" id="bar-mes" style="width: 0%;"></div></div>
+                </div>
+            </div>
+
+            <div class="form-box">
+                <h2>➕ Lançar Ganho ou Gasto</h2>
+                <form onsubmit="adicionarLancamento(event)">
+                    <div class="form-grid">
+                        <div>
+                            <label>Tipo</label>
+                            <select id="l-tipo" required>
+                                <option value="ganho">💰 Ganho (Corrida)</option>
+                                <option value="gasto">⛽ Gasto (Despesa)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Categoria</label>
+                            <select id="l-categoria" required>
+                                <option value="99 Food">99 Food</option>
+                                <option value="iFood / Outros">Outros Apps</option>
+                                <option value="Gasolina">Gasolina</option>
+                                <option value="Manutenção">Manutenção Moto</option>
+                                <option value="Alimentação">Alimentação</option>
+                                <option value="Outros">Outros</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Valor (R$)</label>
+                            <input type="text" id="l-valor" placeholder="00.00" required>
+                        </div>
+                        <div>
+                            <label>Data</label>
+                            <input type="date" id="l-data" required>
+                        </div>
+                        <div>
+                            <label>Descrição</label>
+                            <input type="text" id="l-desc" placeholder="Ex: Turno Almoço">
+                        </div>
+                        <div style="display: flex; align-items: flex-end;">
+                            <button type="submit" class="btn-add">Salvar Lançamento</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="table-box">
+                <h2>📋 Últimos Lançamentos</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Tipo</th>
+                            <th>Categoria</th>
+                            <th>Descrição</th>
+                            <th>Valor</th>
+                            <th>Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-historico">
+                        <tr><td colspan="6" style="text-align: center; color: #888;">Carregando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('l-data').value = new Date().toISOString().split('T')[0];
+
+        let dataExpiracaoGlobal = null;
+
+        function mostrarNotificacao(titulo, descricao) {
+            const toast = document.getElementById('toast-notificacao');
+            document.getElementById('toast-title').innerText = titulo;
+            document.getElementById('toast-desc').innerText = descricao;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 4000);
+        }
+
+        function atualizarRelogio() {
+            const agora = new Date();
+            const opcoes = {
+                timeZone: 'America/Sao_Paulo',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            };
+            const formatoBrasil = new Intl.DateTimeFormat('pt-BR', opcoes).format(agora);
+            const relogioElemento = document.getElementById('relogio-brasilia');
+            if (relogioElemento) {
+                relogioElemento.innerHTML = `🕒 ${formatoBrasil}`;
+            }
+
+            if (dataExpiracaoGlobal) {
+                const diff = new Date(dataExpiracaoGlobal) - agora;
+                const contadorEl = document.getElementById('contador-expiracao');
+                if (diff <= 0) {
+                    contadorEl.innerHTML = `⚠️ Teste Expirado`;
+                    contadorEl.style.color = '#ff4444';
+                    contadorEl.style.borderColor = '#ff4444';
+                } else {
+                    const dias = Math.floor(diff / (1000 * 60 * 60 * 24));
+                    const horas = Math.floor((diff / (1000 * 60 * 60)) % 24);
+                    const minutos = Math.floor((diff / 1000 / 60) % 60);
+                    const segundos = Math.floor((diff / 1000) % 60);
+                    contadorEl.innerHTML = `⏳ Teste: ${dias}d ${horas}h ${minutos}m ${segundos}s`;
+                }
+            }
+        }
+        setInterval(atualizarRelogio, 1000);
+        atualizarRelogio();
+
+        function formatarMoeda(valor) {
+            return 'R$ ' + Number(valor).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        async function verificarSessao() {
+            try {
+                const res = await fetch('/api/session');
+                const data = await res.json();
+                if (data.logado) {
+                    document.getElementById('auth-container').style.display = 'none';
+                    document.getElementById('dashboard-container').style.display = 'block';
+                    document.getElementById('body-app').style.background = '#121212';
+                    document.getElementById('user-name-display').innerText = data.nome;
+                    dataExpiracaoGlobal = data.data_expiracao;
+                    carregarDados();
+                    verificarPainelAdmin(data.is_admin);
+                } else {
+                    document.getElementById('auth-container').style.display = 'flex';
+                    document.getElementById('dashboard-container').style.display = 'none';
+                }
+            } catch (erro) {
+                document.getElementById('auth-container').style.display = 'flex';
+                document.getElementById('dashboard-container').style.display = 'none';
+            }
+        }
+
+        async function verificarPainelAdmin(isAdmin) {
+            if (isAdmin === 1) {
+                document.getElementById('painel-admin').style.display = 'block';
+                carregarUsuariosAdmin();
+            }
+        }
+
+        async function carregarUsuariosAdmin() {
+            const res = await fetch('/api/admin/usuarios');
+            if (res.ok) {
+                const usuarios = await res.json();
+                const tbody = document.getElementById('tabela-admin-usuarios');
+                tbody.innerHTML = '';
+                
+                usuarios.forEach(u => {
+                    const dataExp = new Date(u.data_expiracao).toLocaleDateString('pt-BR');
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${u.nome}</td>
+                            <td>${u.email}</td>
+                            <td>${dataExp}</td>
+                            <td>
+                                <button onclick="renovarCliente(${u.id})" style="background: #00e676; color: #121212; border: none; padding: 6px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; margin-right: 5px;">
+                                    ➕ Renovar
+                                </button>
+                                <button onclick="bloquearCliente(${u.id})" style="background: #ff9d00; color: #121212; border: none; padding: 6px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; margin-right: 5px;">
+                                    🔒 Bloquear
+                                </button>
+                                <button onclick="excluirCliente(${u.id})" style="background: #ff4444; color: #fff; border: none; padding: 6px 10px; border-radius: 4px; font-weight: bold; cursor: pointer;">
+                                    🗑️ Excluir
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+        }
+
+        async function renovarCliente(id) {
+            const res = await fetch(`/api/admin/renovar/${id}`, { method: 'POST' });
+            const data = await res.json();
+            mostrarNotificacao('Sucesso!', data.mensagem);
+            carregarUsuariosAdmin();
+        }
+
+        async function bloquearCliente(id) {
+            if (confirm('Deseja realmente bloquear este usuário?')) {
+                const res = await fetch(`/api/admin/bloquear/${id}`, { method: 'POST' });
+                const data = await res.json();
+                mostrarNotificacao('Aviso', data.mensagem);
+                carregarUsuariosAdmin();
+            }
+        }
+
+        async function excluirCliente(id) {
+            if (confirm('Tem certeza que deseja excluir permanentemente este usuário?')) {
+                const res = await fetch(`/api/admin/usuarios/${id}`, { method: 'DELETE' });
+                const data = await res.json();
+                mostrarNotificacao('Aviso', data.mensagem);
+                carregarUsuariosAdmin();
+            }
+        }
+
+        let isCadastro = false;
+        function alternarTelaAuth() {
+            isCadastro = !isCadastro;
+            document.getElementById('auth-acao').value = isCadastro ? 'cadastrar' : 'login';
+            document.getElementById('div-nome').style.display = isCadastro ? 'block' : 'none';
+            document.getElementById('btn-submit-auth').innerText = isCadastro ? 'Criar Conta' : 'Entrar';
+            document.querySelector('.toggle-btn').innerText = isCadastro ? 'Já tem conta? Faça Login' : 'Não tem conta? Cadastre-se';
+        }
+
+        async function realizarAuth(e) {
+            e.preventDefault();
+            const acao = document.getElementById('auth-acao').value;
+            const nome = document.getElementById('nome').value;
+            const email = document.getElementById('email').value;
+            const senha = document.getElementById('senha').value;
+
+            const res = await fetch('/api/auth', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ acao, nome, email, senha })
+            });
+            const data = await res.json();
+
+            if (data.sucesso) {
+                if (acao === 'cadastrar') {
+                    mostrarNotificacao('Conta Criada!', 'Cadastro realizado com sucesso! Você ganhou 3 dias de teste grátis.');
+                    alternarTelaAuth();
+                } else {
+                    verificarSessao();
+                }
+            } else {
+                const box = document.getElementById('msg-erro');
+                box.innerText = data.mensagem;
+                box.style.display = 'block';
+            }
+        }
+
+        async function carregarDados() {
+            if (dataExpiracaoGlobal && new Date() > new Date(dataExpiracaoGlobal)) {
+                document.querySelector('.container').innerHTML = `
+                    <div style="text-align: center; padding: 50px; background: #1e1e1e; border-radius: 12px; border: 1px solid #ff4444; margin-top: 50px;">
+                        <h2 style="color: #ff4444; font-size: 24px; margin-bottom: 15px;">⚠️ Seu período de teste expirou!</h2>
+                        <p style="color: #ccc; font-size: 16px; margin-bottom: 20px;">Para continuar gerenciando suas entregas e finanças, entre em contato para renovar o seu acesso.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const res = await fetch('/api/dados');
+            if (res.status === 401) return verificarSessao();
+            const data = await res.json();
+
+            document.getElementById('val-hoje').innerText = formatarMoeda(data.saldo_hoje);
+            document.getElementById('val-hoje').style.color = data.saldo_hoje >= 0 ? '#00e676' : '#ff5252';
+
+            document.getElementById('val-semana').innerText = formatarMoeda(data.ganhos_semana - data.gastos_semana);
+            document.getElementById('sub-semana').innerText = `Ganhos: ${formatarMoeda(data.ganhos_semana)} | Gastos: ${formatarMoeda(data.gastos_semana)}`;
+
+            document.getElementById('val-mes').innerText = formatarMoeda(data.ganhos_mes - data.gastos_mes);
+            document.getElementById('sub-mes').innerText = `Ganhos: ${formatarMoeda(data.ganhos_mes)} | Gastos: ${formatarMoeda(data.gastos_mes)}`;
+
+            const pctSemana = Math.min(100, ((data.ganhos_semana / 1000) * 100)).toFixed(1);
+            const pctMes = Math.min(100, ((data.ganhos_mes / 4000) * 100)).toFixed(1);
+
+            document.getElementById('txt-meta-semana').innerHTML = `<strong>${formatarMoeda(data.ganhos_semana)}</strong> (${pctSemana}%)`;
+            document.getElementById('bar-semana').style.width = pctSemana + '%';
+
+            document.getElementById('txt-meta-mes').innerHTML = `<strong>${formatarMoeda(data.ganhos_mes)}</strong> (${pctMes}%)`;
+            document.getElementById('bar-mes').style.width = pctMes + '%';
+
+            const tbody = document.getElementById('tabela-historico');
+            tbody.innerHTML = '';
+            if (data.historico.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #888;">Nenhum lançamento registrado ainda.</td></tr>`;
+            } else {
+                data.historico.forEach(item => {
+                    const dataF = item.data_lancamento.split('-').reverse().join('/');
+                    const sinal = item.tipo === 'ganho' ? '+' : '-';
+                    const classeTxt = item.tipo === 'ganho' ? 'txt-ganho' : 'txt-gasto';
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${dataF}</td>
+                            <td>${item.tipo === 'ganho' ? '💰 Ganho' : '⛽ Gasto'}</td>
+                            <td>${item.categoria}</td>
+                            <td>${item.descricao || '-'}</td>
+                            <td class="${classeTxt}">${sinal} ${formatarMoeda(item.valor)}</td>
+                            <td><button class="del-btn" onclick="deletar(${item.id})">🗑️</button></td>
+                        </tr>
+                    `;
+                });
+            }
+        }
+
+        async function adicionarLancamento(e) {
+            e.preventDefault();
+            const tipo = document.getElementById('l-tipo').value;
+            const categoria = document.getElementById('l-categoria').value;
+            const valor = document.getElementById('l-valor').value;
+            const data_lancamento = document.getElementById('l-data').value;
+            const descricao = document.getElementById('l-desc').value;
+
+            await fetch('/api/lancamentos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ tipo, categoria, valor, descricao, data_lancamento })
+            });
+
+            document.getElementById('l-valor').value = '';
+            document.getElementById('l-desc').value = '';
+            carregarDados();
+        }
+
+        async function deletar(id) {
+            if (confirm('Tem certeza que quer excluir?')) {
+                await fetch(`/api/lancamentos/${id}`, { method: 'DELETE' });
+                carregarDados();
+            }
+        }
+
+        verificarSessao();
+    </script>
+</body>
+</html>

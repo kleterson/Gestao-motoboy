@@ -224,17 +224,6 @@ app.post('/api/admin/bloquear/:id', isAdmin, async (req, res) => {
     }
 });
 
-// Rota para Bloquear usuário
-app.post('/api/admin/bloquear/:id', isAdmin, async (req, res) => {
-    const userId = req.params.id;
-    try {
-        await sql`UPDATE usuarios SET status = 'bloqueado' WHERE id = ${userId}`;
-        res.json({ sucesso: true, mensagem: 'Usuário bloqueado com sucesso!' });
-    } catch (err) {
-        res.status(500).json({ sucesso: false, mensagem: 'Erro ao bloquear usuário' });
-    }
-});
-
 // Rota para Desbloquear usuário
 app.post('/api/admin/desbloquear/:id', isAdmin, async (req, res) => {
     const userId = req.params.id;
@@ -245,6 +234,8 @@ app.post('/api/admin/desbloquear/:id', isAdmin, async (req, res) => {
         res.status(500).json({ sucesso: false, mensagem: 'Erro ao desbloquear usuário' });
     }
 });
+
+
 app.delete('/api/admin/usuarios/:id', isAdmin, async (req, res) => {
     const userId = req.params.id;
 

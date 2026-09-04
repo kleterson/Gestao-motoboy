@@ -21,6 +21,9 @@
         .btn-bloquear { background: #ff9d00; color: #121212; border: none; padding: 6px 10px; border-radius: 6px; font-weight: bold; cursor: pointer; margin-right: 5px; }
         .btn-bloquear:hover { background: #e08b00; }
 
+        .btn-desbloquear { background: #ff4444; color: #fff; border: none; padding: 6px 10px; border-radius: 6px; font-weight: bold; cursor: pointer; margin-right: 5px; }
+        .btn-desbloquear:hover { background: #d32f2f; }
+
         .btn-excluir { background: #ff4444; color: #fff; border: none; padding: 6px 10px; border-radius: 6px; font-weight: bold; cursor: pointer; }
         .btn-excluir:hover { background: #d32f2f; }
 
@@ -83,6 +86,13 @@
 
             usuarios.forEach(u => {
                 const dataExp = new Date(u.data_expiracao).toLocaleDateString('pt-BR');
+                
+                // Verifica o status do usuário para alternar o botão entre Bloquear e Desbloquear
+                const isBloqueado = u.status === 'bloqueado';
+                const botaoStatusHtml = isBloqueado 
+                    ? `<button class="btn-desbloquear" onclick="desbloquear(${u.id})">🔓 Desbloquear</button>`
+                    : `<button class="btn-bloquear" onclick="bloquear(${u.id})">🔒 Bloquear</button>`;
+
                 tbody.innerHTML += `
                     <tr>
                         <td>${u.nome}</td>
@@ -90,7 +100,7 @@
                         <td>${dataExp}</td>
                         <td>
                             <button class="btn-renovar" onclick="renovar(${u.id})">➕ Renovar</button>
-                            <button class="btn-bloquear" onclick="bloquear(${u.id})">🔒 Bloquear</button>
+                            ${botaoStatusHtml}
                             <button class="btn-excluir" onclick="excluir(${u.id})">🗑️ Excluir</button>
                         </td>
                     </tr>
@@ -108,6 +118,15 @@
         async function bloquear(id) {
             if (confirm('Deseja realmente bloquear o acesso deste usuário?')) {
                 const res = await fetch(`/api/admin/bloquear/${id}`, { method: 'POST' });
+                const data = await res.json();
+                mostrarToast(data.mensagem);
+                carregarUsuariosAdmin();
+            }
+        }
+
+        async function desbloquear(id) {
+            if (confirm('Deseja realmente desbloquear o acesso deste usuário?')) {
+                const res = await fetch(`/api/admin/desbloquear/${id}`, { method: 'POST' });
                 const data = await res.json();
                 mostrarToast(data.mensagem);
                 carregarUsuariosAdmin();

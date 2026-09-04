@@ -213,20 +213,25 @@ app.post('/api/admin/renovar/:id', isAdmin, async (req, res) => {
     }
 });
 
+// Rota para Bloquear usuário
 app.post('/api/admin/bloquear/:id', isAdmin, async (req, res) => {
     const userId = req.params.id;
-
     try {
-        const usuarios = await sql`SELECT status FROM usuarios WHERE id = ${userId}`;
-        const row = usuarios[0];
-        if (!row) return res.status(404).json({ sucesso: false, mensagem: 'Usuário não encontrado.' });
-
-        const novoStatus = row.status === 'bloqueado' ? 'ativo' : 'bloqueado';
-
-        await sql`UPDATE usuarios SET status = ${novoStatus} WHERE id = ${userId}`;
-        res.json({ sucesso: true, mensagem: `Usuário ${novoStatus} com sucesso!` });
+        await sql`UPDATE usuarios SET status = 'bloqueado' WHERE id = ${userId}`;
+        res.json({ sucesso: true, mensagem: 'Usuário bloqueado com sucesso!' });
     } catch (err) {
-        res.status(500).json({ sucesso: false, mensagem: 'Erro ao alterar status.' });
+        res.status(500).json({ sucesso: false, mensagem: 'Erro ao bloquear usuário' });
+    }
+});
+
+// Rota para Desbloquear usuário
+app.post('/api/admin/desbloquear/:id', isAdmin, async (req, res) => {
+    const userId = req.params.id;
+    try {
+        await sql`UPDATE usuarios SET status = 'ativo' WHERE id = ${userId}`;
+        res.json({ sucesso: true, mensagem: 'Usuário desbloqueado com sucesso!' });
+    } catch (err) {
+        res.status(500).json({ sucesso: false, mensagem: 'Erro ao desbloquear usuário' });
     }
 });
 
